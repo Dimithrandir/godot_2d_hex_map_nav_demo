@@ -1,0 +1,78 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://res/tileset.tres" type="TileSet" id=1]
+[ext_resource path="res://scenes/player.tscn" type="PackedScene" id=2]
+[ext_resource path="res://scripts/TileMap.gd" type="Script" id=3]
+
+[sub_resource type="ButtonGroup" id=1]
+
+[node name="Main" type="Node"]
+
+[node name="ColorRect" type="ColorRect" parent="."]
+margin_right = 920.0
+margin_bottom = 680.0
+color = Color( 0.129412, 0.0745098, 0.054902, 1 )
+
+[node name="TileMap" type="TileMap" parent="."]
+tile_set = ExtResource( 1 )
+cell_size = Vector2( 92, 106 )
+cell_half_offset = 1
+centered_textures = true
+format = 1
+tile_data = PoolIntArray( 1, 6, 0, 3, 6, 0, 7, 6, 0, 65537, 6, 0, 65538, 5, 0, 65539, 5, 0, 65540, 6, 0, 65542, 6, 0, 65543, 6, 0, 65544, 6, 0, 131073, 6, 0, 131074, 5, 0, 131075, 5, 0, 131076, 5, 0, 131077, 5, 0, 131078, 5, 0, 131079, 5, 0, 131080, 6, 0, 196609, 6, 0, 196613, 5, 0, 196614, 7, 0, 196615, 7, 0, 262146, 6, 0, 262147, 6, 0, 262148, 5, 0, 262149, 5, 0, 262150, 7, 0, 262151, 5, 0, 262152, 5, 0, 327682, 6, 0, 327684, 6, 0, 327688, 6, 0 )
+script = ExtResource( 3 )
+
+[node name="Line2D" type="Line2D" parent="."]
+default_color = Color( 0.2, 0.00392157, 0.00392157, 1 )
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+antialiased = true
+
+[node name="KinematicBody2D" parent="." instance=ExtResource( 2 )]
+position = Vector2( 137, 104 )
+
+[node name="Label1" type="Label" parent="."]
+margin_left = 8.0
+margin_top = 8.0
+margin_right = 89.0
+margin_bottom = 22.0
+text = "world position:"
+
+[node name="WorldPositionLabel" type="Label" parent="."]
+margin_left = 8.0
+margin_top = 24.0
+margin_right = 89.0
+margin_bottom = 38.0
+
+[node name="Label2" type="Label" parent="."]
+margin_left = 8.0
+margin_top = 40.0
+margin_right = 89.0
+margin_bottom = 54.0
+text = "tile position:"
+
+[node name="TilePositionLabel" type="Label" parent="."]
+margin_left = 8.0
+margin_top = 56.0
+margin_right = 89.0
+margin_bottom = 70.0
+
+[node name="CheckBoxDijkstra" type="CheckBox" parent="."]
+margin_left = 832.0
+margin_top = 8.0
+margin_right = 909.0
+margin_bottom = 32.0
+pressed = true
+group = SubResource( 1 )
+text = "Dijkstra"
+
+[node name="CheckBoxAstar" type="CheckBox" parent="."]
+margin_left = 832.0
+margin_top = 32.0
+margin_right = 909.0
+margin_bottom = 56.0
+group = SubResource( 1 )
+text = "A *"
+
+[connection signal="toggled" from="CheckBoxDijkstra" to="KinematicBody2D" method="_on_CheckBox_toggled"]
