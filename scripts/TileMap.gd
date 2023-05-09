@@ -1,81 +1,28 @@
 extends TileMap
 
-
+# hard coded TileMap size
 var map_size = Vector2(9, 6)
+# graph as a simple dictionary
 var map_graph = {}
+# graph as an instance of Godot's AStar2D class
 var astar
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	create_graph()
-	astar = AStar2D.new()
-	for id in range(map_graph.keys().size()):
-		astar.add_point(id + 1, str_to_vector(map_graph.keys()[id]))
-	for node in map_graph.keys():
-		for neighbor in map_graph[node]:
-			astar.connect_points(get_astar_node_index(node), get_astar_node_index(neighbor))
-#	for node in map_graph:
-#		print(node, ': ', map_graph[node])
-
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
+	_create_graphs()
 
 
 func _input(event):
+	# update labels
 	get_node("../WorldPositionLabel").text = str(get_global_mouse_position())
 	get_node("../TilePositionLabel").text = str(world_to_hex_map(get_global_mouse_position()))
-#	if event.is_action_pressed("click"):
-#		print(world_to_hex_map(get_global_mouse_position()))
 
 
-# Get real tile position for given world position,
-# adjusted for hexagonal tile maps
-func world_to_hex_map(pos):
-	pos = to_local(pos)
-	var tile_map_pos = world_to_map(pos)
-	var tile_world_pos = map_to_world(tile_map_pos)
-	# relative to the tile's top-left corner
-	var relative_pos = Vector2(pos.x - tile_world_pos.x, pos.y - tile_world_pos.y)
-	# actual tile map position
-	var real_tile_map_pos = tile_map_pos
-	# distance from tile top-left corner to hex top right corner
-	var temp_l = cell_size.x - tan(PI/6) * cell_size.y / 4
-	# top-left
-	if relative_pos.y <= - tan(PI/3) * relative_pos.x + cell_size.y / 4:
-		real_tile_map_pos.x -= 1
-		if not int(tile_map_pos.x) % 2:
-			real_tile_map_pos.y -= 1
-	# bottom-left
-	elif relative_pos.y >= tan(PI/3) * relative_pos.x + 3 * cell_size.y / 4:
-		real_tile_map_pos.x -= 1
-		if int(tile_map_pos.x) % 2:
-			real_tile_map_pos.y += 1
-	# top-right
-	elif relative_pos.y <= tan(PI/3) * relative_pos.x - tan(PI/3) * temp_l:
-		real_tile_map_pos.x += 1
-		if not int(tile_map_pos.x) % 2:
-			real_tile_map_pos.y -= 1
-	# bottom-right
-	elif relative_pos.y >= - tan(PI/3) * relative_pos.x + tan(PI/3) * temp_l + cell_size.y:
-		real_tile_map_pos.x += 1
-		if int(tile_map_pos.x) % 2:
-			real_tile_map_pos.y += 1
-	
-	return real_tile_map_pos
-
-
-# Get world position of center of given cell
-func get_cell_center(pos):
-	var tile_world_pos = map_to_world(pos)
-	return Vector2(tile_world_pos.x + cell_size.x / 2, tile_world_pos.y + cell_size.y / 2)
-
-
-# Dynamically create the graph for the TileMap with given map_size
-# as a dictionary with cells/nodes as keys and list of neighbors as values
-func create_graph():
+# Dynamically create the graphs for the TileMap with given map_size
+# both as a simple dictionary with cells/nodes as keys and list of neighbors as values
+# and as an instance of Godot's own AStar2D implementation
+func _create_graphs():
 	# find all valid (non-empty) cells
 	var valid_cells = []
 	for j in range(-1, map_size.y):
@@ -100,12 +47,19 @@ func create_graph():
 		neighbor_cell = cell + (Vector2(0, -1) if int(cell.x) % 2 else Vector2(0, 1))
 		if not get_cellv(neighbor_cell) == TileMap.INVALID_CELL:
 			map_graph[node].append(str(neighbor_cell))
+	# initialize astar
+	astar = AStar2D.new()
+	for id in range(map_graph.keys().size()):
+		astar.add_point(id + 1, str_to_vector(map_graph.keys()[id]))
+	for node in map_graph.keys():
+		for neighbor in map_graph[node]:
+			astar.connect_points(get_astar_node_index(node), get_astar_node_index(neighbor))
 
 
 # Djikstra
-func find_path(start, end):
-	start = str(start)
-	end = str(end)
+func find_path(from : Vector2, to : Vector2) -> Array:
+	var start = str(from)
+	var end = str(to)
 
 	var distances = {}
 	var predecessors = {}
@@ -141,6 +95,48 @@ func find_path(start, end):
 			current = predecessors[current]
 	
 	return path
+
+
+# Get real tile position for given world position,
+# adjusted for hexagonal tile maps
+func world_to_hex_map(pos : Vector2) -> Vector2:
+	pos = to_local(pos)
+	var tile_map_pos = world_to_map(pos)
+	var tile_world_pos = map_to_world(tile_map_pos)
+	# relative to the tile's top-left corner
+	var relative_pos = Vector2(pos.x - tile_world_pos.x, pos.y - tile_world_pos.y)
+	# actual tile map position
+	var real_tile_map_pos = tile_map_pos
+	# distance from tile top-left corner to hex top right corner
+	var temp_l = cell_size.x - tan(PI/6) * cell_size.y / 4
+	# top-left
+	if relative_pos.y <= - tan(PI/3) * relative_pos.x + cell_size.y / 4:
+		real_tile_map_pos.x -= 1
+		if not int(tile_map_pos.x) % 2:
+			real_tile_map_pos.y -= 1
+	# bottom-left
+	elif relative_pos.y >= tan(PI/3) * relative_pos.x + 3 * cell_size.y / 4:
+		real_tile_map_pos.x -= 1
+		if int(tile_map_pos.x) % 2:
+			real_tile_map_pos.y += 1
+	# top-right
+	elif relative_pos.y <= tan(PI/3) * relative_pos.x - tan(PI/3) * temp_l:
+		real_tile_map_pos.x += 1
+		if not int(tile_map_pos.x) % 2:
+			real_tile_map_pos.y -= 1
+	# bottom-right
+	elif relative_pos.y >= - tan(PI/3) * relative_pos.x + tan(PI/3) * temp_l + cell_size.y:
+		real_tile_map_pos.x += 1
+		if int(tile_map_pos.x) % 2:
+			real_tile_map_pos.y += 1
+
+	return real_tile_map_pos
+
+
+# Get world position of center of given cell
+func get_cell_center(pos : Vector2) -> Vector2:
+	var tile_world_pos = map_to_world(pos)
+	return Vector2(tile_world_pos.x + cell_size.x / 2, tile_world_pos.y + cell_size.y / 2)
 
 
 func str_to_vector(string : String) -> Vector2:
