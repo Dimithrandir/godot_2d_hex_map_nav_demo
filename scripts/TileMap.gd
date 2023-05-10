@@ -25,7 +25,7 @@ func _input(event):
 func _create_graphs():
 	# find all valid (non-empty) cells
 	var valid_cells = []
-	for j in range(-1, map_size.y):
+	for j in range(map_size.y):
 		for i in range(map_size.x):
 			var cell = Vector2(i, j)
 			if not get_cellv(cell) == TileMap.INVALID_CELL:
@@ -139,10 +139,13 @@ func get_cell_center(pos : Vector2) -> Vector2:
 	return Vector2(tile_world_pos.x + cell_size.x / 2, tile_world_pos.y + cell_size.y / 2)
 
 
+# Get a Vector from string in format "(x, y)"
 func str_to_vector(string : String) -> Vector2:
 	var splitted = string.split(",")
 	return Vector2(splitted[0].trim_prefix("("), splitted[1].trim_suffix(")"))
 
 
+# Get point id for Godot's AStar implementation
+# The id is the node index in map_graph dictionary
 func get_astar_node_index(node : String) -> int:
 	return map_graph.keys().find(node) + 1
