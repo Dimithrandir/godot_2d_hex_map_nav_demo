@@ -45,7 +45,7 @@ func _input(event):
 			target = world_path.pop_front()
 
 
-func _physics_process(delta):
+func _physics_process(_delta):
 	velocity = position.direction_to(target) * speed
 	if position.distance_to(target) > 5:
 		velocity = move_and_slide(velocity)

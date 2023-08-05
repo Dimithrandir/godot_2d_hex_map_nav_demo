@@ -13,7 +13,7 @@ func _ready():
 	_create_graphs()
 
 
-func _input(event):
+func _input(_event):
 	# update labels
 	get_node("../WorldPositionLabel").text = str(get_global_mouse_position())
 	get_node("../TilePositionLabel").text = str(world_to_hex_map(get_global_mouse_position()))
